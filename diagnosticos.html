@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Diagnósticos Cardíacos</title>
+    <!-- Incluimos WaveSurfer.js para la graficación de la forma de onda -->
+    <script src="https://unpkg.com/wavesurfer.js"></script>
+    <style>
+        /* --- ESTILOS GLOBAL Y CONTENEDOR (Basado en tu ejemplo) --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Degradado de fondo de tu ejemplo */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .main-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            /* Sombra más marcada como en tu ejemplo */
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px; /* Más ancho para el visualizador */
+            width: 100%;
+        }
+        .main-title {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        /* --- ESTILOS DE COMPONENTES --- */
+        .card {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f4f6ff; /* Fondo claro para la sección de control */
+            border-radius: 12px;
+            border: 1px solid #d4d7f0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #4b0082; /* Púrpura oscuro */
+            margin-bottom: 15px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            margin-bottom: 15px;
+        }
+
+        /* Botón con degradado (Basado en tu ejemplo) */
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none; /* Importante para el <a> */
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        /* Contenedor de la forma de onda */
+        #waveform {
+            width: 100%;
+            height: 120px;
+            cursor: pointer;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- DETALLE DEL DIAGNÓSTICO --- */
+        .detail-box {
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        .diagnosis-normal {
+            border-left: 5px solid #28a745; /* Verde fuerte */
+        }
+        .diagnosis-anormal {
+            border-left: 5px solid #dc3545; /* Rojo fuerte */
+        }
+        .detail-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .detail-item p {
+            font-size: 1rem;
+            color: #555;
+        }
+        .detail-item strong {
+            color: #333;
+            font-weight: 600;
+        }
+        .text-center { text-align: center; }
+        .mt-8 { margin-top: 30px; }
+        .flex { display: flex; }
+        .space-x-4 > * + * { margin-left: 1rem; }
+        .items-center { align-items: center; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 md:p-8">
+
+    <div class="main-container">
+        <h1 class="main-title text-center">
+            📄 Listado y Visualización de Diagnósticos
+        </h1>
+        
+        <!-- 1. Controles de Selección y Reproducción -->
+        <div class="card">
+            <h2 class="card-title">Audio Seleccionado</h2>
+
+            <select id="audio-selector">
+                <option value="" disabled selected>Cargando audios...</option>
+            </select>
+            
+            <!-- Contenedor para la gráfica WaveSurfer -->
+            <div id="waveform"></div>
+            
+            <!-- Controles de Reproducción -->
+            <div class="mt-8 flex items-center space-x-4">
+                <button id="play-pause-btn" class="btn" disabled>
+                    ▶️ Reproducir / ⏸️ Pausar
+                </button>
+                <span id="duration-display" style="color: #666; font-weight: 600;">0:00 / 0:00</span>
+            </div>
+        </div>
+
+        <!-- 2. Detalle del Diagnóstico Seleccionado -->
+        <div id="diagnosis-detail" class="detail-box hidden">
+            <p style="color: #999; margin-bottom: 5px;">Detalles del Análisis</p>
+            <h3 id="detail-result" style="font-size: 1.5rem; font-weight: bold; margin-bottom: 15px;"></h3>
+            <div class="detail-item">
+                <p><strong>👤 ID Paciente:</strong> <span id="detail-patient"></span></p>
+                <p><strong>📅 Fecha:</strong> <span id="detail-date"></span></p>
+                <p><strong>🔍 Confianza IA:</strong> <span id="detail-confidence"></span></p>
+                <p><strong>🔊 Ruta:</strong> <span id="detail-path" style="font-size: 0.9em; color: #999; display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"></span></p>
+            </div>
+        </div>
+        
+        <!-- Botón para volver al formulario -->
+        <div class="mt-8 text-center">
+            <a href="/" class="btn btn-secondary">
+                &larr; Volver al Formulario de Carga
+            </a>
+        </div>
+    </div>
+
+    <!-- Script de JavaScript para la Lógica del Frontend -->
+    <script>
+        const audioSelector = document.getElementById('audio-selector');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const detailContainer = document.getElementById('diagnosis-detail');
+        const detailResult = document.getElementById('detail-result');
+        const detailPatient = document.getElementById('detail-patient');
+        const detailDate = document.getElementById('detail-date');
+        const detailConfidence = document.getElementById('detail-confidence');
+        const detailPath = document.getElementById('detail-path');
+        const durationDisplay = document.getElementById('duration-display');
+        
+        let wavesurfer = null;
+        let allDiagnoses = []; // Para almacenar todos los datos recibidos de la API
+
+        /**
+         * Inicializa WaveSurfer con la ruta del audio y lo carga.
+         * @param {string} audioPath La ruta relativa al servidor (ej: /uploads/audio.mp3).
+         * @param {Object} diagnosisData Los datos completos del diagnóstico.
+         */
+        function initWaveSurfer(audioPath, diagnosisData) {
+            // 1. Destruir la instancia anterior si existe
+            if (wavesurfer) {
+                wavesurfer.destroy();
+            }
+
+            // 2. Crear nueva instancia de WaveSurfer
+            wavesurfer = WaveSurfer.create({
+                container: '#waveform',
+                waveColor: '#a855f7', // Púrpura claro
+                progressColor: '#6d28d9', // Púrpura oscuro
+                cursorColor: '#3730a3',
+                height: 120,
+                barWidth: 2,
+                barGap: 1,
+                interact: true
+            });
+
+            // 3. Cargar el audio
+            wavesurfer.load(audioPath);
+
+            // 4. Actualizar los detalles del diagnóstico
+            updateDiagnosisDetails(diagnosisData);
+            
+            // 5. Manejar eventos de WaveSurfer
+            wavesurfer.on('ready', () => {
+                playPauseBtn.disabled = false;
+                wavesurfer.setVolume(1.0); // Asegura el volumen
+                updateTimeDisplay(wavesurfer.getDuration(), wavesurfer.getCurrentTime());
+            });
+
+            wavesurfer.on('audioprocess', () => {
+                updateTimeDisplay(wavesurfer.getDuration(), wavesurfer.getCurrentTime());
+            });
+            
+            wavesurfer.on('finish', () => {
+                playPauseBtn.textContent = '▶️ Reproducir / ⏸️ Pausar';
+            });
+            
+            wavesurfer.on('play', () => {
+                playPauseBtn.textContent = '⏸️ Pausar';
+            });
+            
+            wavesurfer.on('pause', () => {
+                playPauseBtn.textContent = '▶️ Reproducir';
+            });
+        }
+        
+        /**
+         * Formatea el tiempo en minutos:segundos.
+         */
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        /**
+         * Actualiza el display de tiempo del audio.
+         */
+        function updateTimeDisplay(duration, currentTime) {
+            durationDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+        }
+
+        /**
+         * Actualiza el contenedor de detalles con los datos del diagnóstico.
+         */
+        function updateDiagnosisDetails(data) {
+            const isNormal = data.resultado_ia.toLowerCase() === 'normal';
+            
+            // Eliminar clases de borde anteriores y añadir la nueva
+            detailContainer.classList.remove('diagnosis-normal', 'diagnosis-anormal');
+            detailContainer.classList.add('diagnosis-' + (isNormal ? 'normal' : 'anormal'));
+            detailContainer.classList.remove('hidden');
+
+            detailResult.textContent = isNormal ? '💚 Normal' : '⚠️ Anormal';
+            detailResult.style.color = isNormal ? '#28a745' : '#dc3545'; // Colores más vibrantes para los iconos
+
+            detailPatient.textContent = data.paciente_id;
+            detailDate.textContent = data.fecha_analisis_formato;
+            detailConfidence.textContent = `${data.confianza}%`;
+            detailPath.textContent = data.ruta_audio;
+        }
+
+        /**
+         * Obtiene la lista de diagnósticos del backend.
+         */
+        async function fetchDiagnoses() {
+            try {
+                // Llama a la ruta API que creaste en server.js
+                const response = await fetch('/api/audios'); 
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                allDiagnoses = await response.json();
+                
+                // Limpiar el selector
+                audioSelector.innerHTML = '';
+                
+                if (allDiagnoses.length === 0) {
+                    audioSelector.innerHTML = '<option value="" disabled selected>No hay diagnósticos registrados</option>';
+                    playPauseBtn.disabled = true;
+                    return;
+                }
+
+                // Llenar el selector con los audios
+                allDiagnoses.forEach((diag, index) => {
+                    const option = document.createElement('option');
+                    option.value = index; // Usamos el índice para recuperar el objeto completo
+                    option.textContent = `[${diag.id}] ${diag.resultado_ia} - Paciente: ${diag.paciente_id} - ${diag.fecha_analisis_formato}`;
+                    audioSelector.appendChild(option);
+                });
+
+                // Cargar el primer audio al inicio
+                audioSelector.value = 0;
+                const firstDiagnosis = allDiagnoses[0];
+                initWaveSurfer(firstDiagnosis.ruta_audio, firstDiagnosis);
+
+            } catch (error) {
+                console.error('Error al cargar los diagnósticos:', error);
+                audioSelector.innerHTML = '<option value="" disabled selected>Error al cargar el historial</option>';
+            }
+        }
+
+        // --- Event Listeners ---
+
+        // 1. Manejar el cambio en el selector
+        audioSelector.addEventListener('change', (e) => {
+            const selectedIndex = parseInt(e.target.value);
+            const selectedDiagnosis = allDiagnoses[selectedIndex];
+            
+            if (selectedDiagnosis) {
+                initWaveSurfer(selectedDiagnosis.ruta_audio, selectedDiagnosis);
+            }
+        });
+
+        // 2. Manejar el botón de Reproducir/Pausar
+        playPauseBtn.addEventListener('click', () => {
+            if (wavesurfer) {
+                wavesurfer.playPause();
+            }
+        });
+        
+        // 3. Cargar datos al cargar la página
+        window.onload = fetchDiagnoses;
+
+    </script>
+</body>
+</html>

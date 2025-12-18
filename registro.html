@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuario - Sistema de Análisis Cardíaco</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .register-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h2 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .header .icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        input.error {
+            border-color: #dc3545 !important;
+        }
+        
+        input.success {
+            border-color: #28a745 !important;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+        
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #999;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.95rem;
+        }
+        
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        
+        .login-link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+        
+        .input-icon {
+            position: relative;
+        }
+        
+        .input-icon input {
+            padding-left: 40px;
+        }
+        
+        .input-icon::before {
+            content: attr(data-icon);
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: #999;
+            z-index: 1;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+        
+        .back-link a:hover {
+            color: #764ba2;
+        }
+        
+        .password-hint {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        .error-message {
+            font-size: 0.85rem;
+            color: #dc3545;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        .success-message {
+            font-size: 0.85rem;
+            color: #28a745;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+        
+        .password-strength {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+        
+        .strength-weak { background: #dc3545; width: 33%; }
+        .strength-medium { background: #ffc107; width: 66%; }
+        .strength-strong { background: #28a745; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="header">
+            <div class="icon">🫀</div>
+            <h2>Registro de Usuario</h2>
+            <p>Crea tu cuenta en el Sistema de Análisis Cardíaco</p>
+        </div>
+        
+        <form action="/registro" method="POST" id="registerForm" novalidate>
+            <div class="form-group">
+                <label for="nombre_completo">👤 Nombre Completo</label>
+                <div class="input-icon" data-icon="👤">
+                    <input 
+                        type="text" 
+                        id="nombre_completo" 
+                        name="nombre_completo" 
+                        placeholder="Ej: Juan Pérez García"
+                        required
+                        autocomplete="name"
+                        minlength="3"
+                    >
+                </div>
+                <p class="error-message" id="nameError">Por favor ingresa tu nombre completo (mínimo 3 caracteres)</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">📧 Correo Electrónico</label>
+                <div class="input-icon" data-icon="✉️">
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="ejemplo@correo.com"
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+                <p class="error-message" id="emailError">Por favor ingresa un correo electrónico válido</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">🔒 Contraseña</label>
+                <div class="input-icon" data-icon="🔑">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Crea una contraseña segura"
+                        required
+                        autocomplete="new-password"
+                        minlength="6"
+                    >
+                </div>
+                <div class="password-strength">
+                    <div class="password-strength-bar" id="strengthBar"></div>
+                </div>
+                <p class="password-hint" id="passwordHint">Mínimo 6 caracteres. Usa mayúsculas, números y símbolos.</p>
+                <p class="error-message" id="passwordError">La contraseña debe tener al menos 6 caracteres</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm_password">🔒 Confirmar Contraseña</label>
+                <div class="input-icon" data-icon="🔑">
+                    <input 
+                        type="password" 
+                        id="confirm_password" 
+                        name="confirm_password" 
+                        placeholder="Repite tu contraseña"
+                        required
+                        autocomplete="new-password"
+                    >
+                </div>
+                <p class="error-message" id="confirmError">Las contraseñas no coinciden</p>
+                <p class="success-message" id="confirmSuccess">✓ Las contraseñas coinciden</p>
+            </div>
+            
+            <button type="submit" class="btn" id="submitBtn">
+                Crear Cuenta
+            </button>
+        </form>
+        
+        <div class="divider">
+            <span>o</span>
+        </div>
+        
+        <div class="login-link">
+            <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('registerForm');
+        const nombreInput = document.getElementById('nombre_completo');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('confirm_password');
+        const submitBtn = document.getElementById('submitBtn');
+        const strengthBar = document.getElementById('strengthBar');
+        
+        // Validación en tiempo real del nombre
+        nombreInput.addEventListener('blur', () => {
+            const nameError = document.getElementById('nameError');
+            if (nombreInput.value.length < 3) {
+                nombreInput.classList.add('error');
+                nombreInput.classList.remove('success');
+                nameError.classList.add('show');
+            } else {
+                nombreInput.classList.remove('error');
+                nombreInput.classList.add('success');
+                nameError.classList.remove('show');
+            }
+        });
+        
+        // Validación del email
+        emailInput.addEventListener('blur', () => {
+            const emailError = document.getElementById('emailError');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailInput.value)) {
+                emailInput.classList.add('error');
+                emailInput.classList.remove('success');
+                emailError.classList.add('show');
+            } else {
+                emailInput.classList.remove('error');
+                emailInput.classList.add('success');
+                emailError.classList.remove('show');
+            }
+        });
+        
+        // Medidor de fuerza de contraseña
+        passwordInput.addEventListener('input', () => {
+            const password = passwordInput.value;
+            let strength = 0;
+            
+            if (password.length >= 6) strength++;
+            if (password.length >= 10) strength++;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            if (/\d/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+            
+            strengthBar.className = 'password-strength-bar';
+            if (strength >= 4) {
+                strengthBar.classList.add('strength-strong');
+            } else if (strength >= 2) {
+                strengthBar.classList.add('strength-medium');
+            } else if (strength >= 1) {
+                strengthBar.classList.add('strength-weak');
+            }
+            
+            // Validar longitud mínima
+            const passwordError = document.getElementById('passwordError');
+            if (password.length > 0 && password.length < 6) {
+                passwordInput.classList.add('error');
+                passwordError.classList.add('show');
+            } else {
+                passwordInput.classList.remove('error');
+                passwordError.classList.remove('show');
+            }
+        });
+        
+        // Validación de confirmación de contraseña
+        confirmInput.addEventListener('input', () => {
+            const confirmError = document.getElementById('confirmError');
+            const confirmSuccess = document.getElementById('confirmSuccess');
+            
+            if (confirmInput.value && passwordInput.value !== confirmInput.value) {
+                confirmInput.classList.add('error');
+                confirmInput.classList.remove('success');
+                confirmError.classList.add('show');
+                confirmSuccess.classList.remove('show');
+            } else if (confirmInput.value && passwordInput.value === confirmInput.value) {
+                confirmInput.classList.remove('error');
+                confirmInput.classList.add('success');
+                confirmError.classList.remove('show');
+                confirmSuccess.classList.add('show');
+            } else {
+                confirmInput.classList.remove('error', 'success');
+                confirmError.classList.remove('show');
+                confirmSuccess.classList.remove('show');
+            }
+        });
+        
+        // Validación final al enviar
+        form.addEventListener('submit', (e) => {
+            let isValid = true;
+            
+            // Validar nombre
+            if (nombreInput.value.length < 3) {
+                isValid = false;
+                nombreInput.classList.add('error');
+                document.getElementById('nameError').classList.add('show');
+            }
+            
+            // Validar email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailInput.value)) {
+                isValid = false;
+                emailInput.classList.add('error');
+                document.getElementById('emailError').classList.add('show');
+            }
+            
+            // Validar contraseña
+            if (passwordInput.value.length < 6) {
+                isValid = false;
+                passwordInput.classList.add('error');
+                document.getElementById('passwordError').classList.add('show');
+            }
+            
+            // Validar coincidencia de contraseñas
+            if (passwordInput.value !== confirmInput.value) {
+                isValid = false;
+                confirmInput.classList.add('error');
+                document.getElementById('confirmError').classList.add('show');
+                alert('⚠️ Las contraseñas no coinciden. Por favor, verifica.');
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+        
+        // Limpiar errores al escribir
+        [nombreInput, emailInput, passwordInput, confirmInput].forEach(input => {
+            input.addEventListener('input', () => {
+                input.classList.remove('error');
+            });
+        });
+    </script>
+</body>
+</html>

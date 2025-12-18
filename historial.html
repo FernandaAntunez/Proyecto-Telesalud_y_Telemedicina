@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Análisis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: transform 0.2s;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #555;
+        }
+        
+        tbody tr {
+            transition: background 0.2s;
+        }
+        
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .badge-normal {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-anomalia {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .confidence {
+            font-weight: bold;
+        }
+        
+        .confidence-high {
+            color: #28a745;
+        }
+        
+        .confidence-medium {
+            color: #ffc107;
+        }
+        
+        .confidence-low {
+            color: #dc3545;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 1.2rem;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+            font-size: 1.2rem;
+        }
+        
+        .patient-info {
+            font-size: 0.9rem;
+            color: #666;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .date {
+            font-size: 0.9rem;
+            color: #888;
+        }
+        
+        .filename {
+            font-size: 0.9rem;
+            color: #555;
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .btn-ver {
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        
+        .btn-ver:hover {
+            background: #218838;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            th, td {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+            
+            .filename, .patient-info {
+                max-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Historial de Análisis</h1>
+            <div style="display: flex; gap: 10px;">
+                <a href="/" class="btn">🏠 Inicio</a>
+                <button onclick="location.reload()" class="btn btn-secondary">🔄 Actualizar</button>
+            </div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <h3>Total Análisis</h3>
+                <div class="number" id="totalAnalisis">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Normales</h3>
+                <div class="number" id="totalNormales">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Anomalías</h3>
+                <div class="number" id="totalAnomalias">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Confianza Promedio</h3>
+                <div class="number" id="confianzaPromedio">-</div>
+            </div>
+        </div>
+
+        <div id="loadingDiv" class="loading">
+            ⏳ Cargando historial...
+        </div>
+
+        <div class="table-container" id="tableContainer" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Archivo</th>
+                        <th>Paciente</th>
+                        <th>Clasificación</th>
+                        <th>Confianza</th>
+                        <th>Latidos</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div id="noDataDiv" class="no-data" style="display: none;">
+            📭 No hay análisis registrados aún
+        </div>
+    </div>
+
+    <script>
+        // Cargar datos al iniciar
+        async function loadData() {
+            try {
+                const response = await fetch('/api/historial');
+                const data = await response.json();
+                
+                document.getElementById('loadingDiv').style.display = 'none';
+                
+                if (data.length === 0) {
+                    document.getElementById('noDataDiv').style.display = 'block';
+                    return;
+                }
+                
+                document.getElementById('tableContainer').style.display = 'block';
+                updateStats(data);
+                renderTable(data);
+                
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                document.getElementById('loadingDiv').innerHTML = '❌ Error al cargar datos';
+            }
+        }
+        
+        // Actualizar estadísticas
+        function updateStats(data) {
+            const total = data.length;
+            const normales = data.filter(d => d.clasificacion.toLowerCase() === 'normal').length;
+            const anomalias = total - normales;
+            const confianzaPromedio = (data.reduce((sum, d) => sum + parseFloat(d.confianza), 0) / total).toFixed(1);
+            
+            document.getElementById('totalAnalisis').textContent = total;
+            document.getElementById('totalNormales').textContent = normales;
+            document.getElementById('totalAnomalias').textContent = anomalias;
+            document.getElementById('confianzaPromedio').textContent = confianzaPromedio + '%';
+        }
+        
+        // Renderizar tabla
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            data.forEach(row => {
+                const isNormal = row.clasificacion.toLowerCase() === 'normal';
+                const badgeClass = isNormal ? 'badge-normal' : 'badge-anomalia';
+                
+                let confidenceClass = 'confidence-high';
+                if (row.confianza < 70) confidenceClass = 'confidence-low';
+                else if (row.confianza < 85) confidenceClass = 'confidence-medium';
+                
+                const fecha = new Date(row.fecha_analisis).toLocaleString('es-ES', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>#${row.id}</strong></td>
+                    <td class="date">${fecha}</td>
+                    <td class="filename" title="${row.nombre_original}">${row.nombre_original}</td>
+                    <td class="patient-info" title="${row.paciente_info || 'N/A'}">${row.paciente_info || 'N/A'}</td>
+                    <td><span class="badge ${badgeClass}">${row.clasificacion}</span></td>
+                    <td class="confidence ${confidenceClass}">${row.confianza}%</td>
+                    <td>💓 ${row.ciclos_latidos}</td>
+                    <td><a href="/analisis/${row.id}" class="btn-ver">🔍 Ver Detalle</a></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        // Cargar datos al inicio
+        loadData();
+    </script>
+</body>
+</html>

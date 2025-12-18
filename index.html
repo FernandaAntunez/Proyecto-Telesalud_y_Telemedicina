@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Sonidos Cardíacos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 2rem;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+            font-weight: 600;
+        }
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .file-label {
+            display: block;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .file-label:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-name {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #28a745;
+            text-align: center;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .links {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+        .icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .loading.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🫀</div>
+        <h1>Análisis Cardíaco IA</h1>
+        <p class="subtitle">Sube un audio MP3 de sonidos cardíacos para análisis automático</p>
+
+        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="paciente_info">📋 Información del Paciente (Opcional)</label>
+                <input 
+                    type="text" 
+                    id="paciente_info" 
+                    name="paciente_info" 
+                    placeholder="Ej: Juan Pérez - ID: 12345 - Edad: 45"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="cancion">🎵 Archivo de Audio (MP3)</label>
+                <label for="cancion" class="file-label" id="fileLabel">
+                    Haz clic aquí para seleccionar archivo MP3
+                </label>
+                <input 
+                    type="file" 
+                    id="cancion" 
+                    name="cancion" 
+                    accept=".mp3,audio/mpeg" 
+                    required
+                >
+                <div id="fileName" class="file-name"></div>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                🔍 Analizar Audio
+            </button>
+
+            <div class="loading" id="loading">
+                <p>⏳ Analizando... Por favor espera</p>
+            </div>
+        </form>
+
+        <div class="links">
+            <a href="/historial" target="_blank">📊 Ver Historial</a>
+            <a href="/estadisticas" target="_blank">📈 Estadísticas</a>
+            <a href="/usuarios" target="_blank"> Consultar Usuarios Registrados</a>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('cancion');
+        const fileLabel = document.getElementById('fileLabel');
+        const fileName = document.getElementById('fileName');
+        const form = document.getElementById('uploadForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                fileLabel.textContent = '✅ Archivo seleccionado';
+                fileName.textContent = `📁 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                fileLabel.style.borderColor = '#28a745';
+                fileLabel.style.background = '#d4edda';
+            }
+        });
+
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Procesando...';
+            loading.classList.add('active');
+        });
+    </script>
+</body>
+
+</html>

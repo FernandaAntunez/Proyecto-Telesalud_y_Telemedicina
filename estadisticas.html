@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas de Análisis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 2rem;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: transform 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 3px solid transparent;
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card.normal {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+        
+        .stat-card.murmur {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        }
+        
+        .stat-card.extrastole {
+            border-color: #ffc107;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        }
+        
+        .stat-card.extrahls {
+            border-color: #17a2b8;
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+        }
+        
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .stat-card h2 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #333;
+            margin: 15px 0;
+        }
+        
+        .stat-detail {
+            font-size: 1rem;
+            color: #666;
+            margin: 5px 0;
+        }
+        
+        .confidence-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #555;
+        }
+        
+        tbody tr {
+            transition: background 0.2s;
+        }
+        
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 1.2rem;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Estadísticas de Análisis</h1>
+            <div style="display: flex; gap: 10px;">
+                <a href="/" class="btn">🏠 Inicio</a>
+                <a href="/historial" class="btn">📋 Historial</a>
+                <button onclick="location.reload()" class="btn btn-secondary">🔄 Actualizar</button>
+            </div>
+        </div>
+
+        <div id="loadingDiv" class="loading">
+            ⏳ Cargando estadísticas...
+        </div>
+
+        <div id="statsGrid" class="stats-grid" style="display: none;">
+            <!-- Las tarjetas se generarán aquí -->
+        </div>
+
+        <div class="table-container" id="tableContainer" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Clasificación</th>
+                        <th>Total de Análisis</th>
+                        <th>Confianza Promedio</th>
+                        <th>Porcentaje del Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div id="noDataDiv" class="no-data" style="display: none;">
+            📭 No hay estadísticas disponibles
+        </div>
+    </div>
+
+    <script>
+        const iconos = {
+            'normal': '💚',
+            'murmur': '⚠️',
+            'extrastole': '💛',
+            'extrahls': '🔵',
+            'default': '🫀'
+        };
+
+        // Cargar estadísticas
+        async function loadData() {
+            try {
+                const response = await fetch('/api/estadisticas');
+                const data = await response.json();
+                
+                document.getElementById('loadingDiv').style.display = 'none';
+                
+                if (data.length === 0) {
+                    document.getElementById('noDataDiv').style.display = 'block';
+                    return;
+                }
+                
+                document.getElementById('statsGrid').style.display = 'grid';
+                document.getElementById('tableContainer').style.display = 'block';
+                
+                renderCards(data);
+                renderTable(data);
+                
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                document.getElementById('loadingDiv').innerHTML = '❌ Error al cargar estadísticas';
+            }
+        }
+        
+        // Renderizar tarjetas
+        function renderCards(data) {
+            const grid = document.getElementById('statsGrid');
+            grid.innerHTML = '';
+            
+            const total = data.reduce((sum, item) => sum + item.total, 0);
+            
+            data.forEach(stat => {
+                const clasificacion = stat.clasificacion.toLowerCase();
+                const porcentaje = ((stat.total / total) * 100).toFixed(1);
+                const confianza = parseFloat(stat.confianza_promedio).toFixed(1);
+                const icono = iconos[clasificacion] || iconos.default;
+                
+                const card = document.createElement('div');
+                card.className = `stat-card ${clasificacion}`;
+                card.innerHTML = `
+                    <div class="stat-icon">${icono}</div>
+                    <h2>${stat.clasificacion}</h2>
+                    <div class="stat-number">${stat.total}</div>
+                    <div class="stat-detail">análisis realizados</div>
+                    <div class="stat-detail"><strong>${porcentaje}%</strong> del total</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${confianza}%"></div>
+                    </div>
+                    <div class="stat-detail" style="margin-top: 5px;">Confianza: ${confianza}%</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+        
+        // Renderizar tabla
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            const total = data.reduce((sum, item) => sum + item.total, 0);
+            
+            data.forEach(stat => {
+                const porcentaje = ((stat.total / total) * 100).toFixed(1);
+                const confianza = parseFloat(stat.confianza_promedio).toFixed(1);
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${stat.clasificacion}</strong></td>
+                    <td>${stat.total}</td>
+                    <td>${confianza}%</td>
+                    <td>${porcentaje}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        // Cargar datos al inicio
+        loadData();
+    </script>
+</body>
+</html>

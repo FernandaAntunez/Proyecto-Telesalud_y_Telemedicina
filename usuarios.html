@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios Registrados</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: transform 0.2s;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #555;
+        }
+        
+        tbody tr {
+            transition: background 0.2s;
+        }
+        
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .badge-admin {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .badge-medico {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .badge-paciente {
+            background: #28a745;
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 1.2rem;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            th, td {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 Usuarios Registrados</h1>
+            <div style="display: flex; gap: 10px;">
+                <a href="/" class="btn">🏠 Volver</a>
+                <button onclick="location.reload()" class="btn btn-secondary">🔄 Actualizar</button>
+            </div>
+        </div>
+
+        <div id="loadingDiv" class="loading">
+            ⏳ Cargando usuarios...
+        </div>
+
+        <div class="table-container" id="tableContainer" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Fecha Registro</th>
+                        <th>Último Acceso</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div id="noDataDiv" class="no-data" style="display: none;">
+            📭 No hay usuarios registrados
+        </div>
+    </div>
+
+    <script>
+        // Cargar usuarios al iniciar
+        async function loadData() {
+            try {
+                const response = await fetch('/api/usuarios');
+                const data = await response.json();
+                
+                document.getElementById('loadingDiv').style.display = 'none';
+                
+                if (data.length === 0) {
+                    document.getElementById('noDataDiv').style.display = 'block';
+                    return;
+                }
+                
+                document.getElementById('tableContainer').style.display = 'block';
+                renderTable(data);
+                
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                document.getElementById('loadingDiv').innerHTML = '❌ Error al cargar datos';
+            }
+        }
+        
+        // Renderizar tabla
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            data.forEach(user => {
+                let badgeClass = 'badge-paciente';
+                if (user.rol === 'admin') badgeClass = 'badge-admin';
+                else if (user.rol === 'medico') badgeClass = 'badge-medico';
+                
+                const fechaRegistro = new Date(user.fecha_registro).toLocaleString('es-ES', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                let ultimoAcceso = 'Nunca';
+                if (user.ultimo_acceso) {
+                    ultimoAcceso = new Date(user.ultimo_acceso).toLocaleString('es-ES', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>#${user.id}</strong></td>
+                    <td>${user.nombre_completo}</td>
+                    <td>${user.email}</td>
+                    <td><span class="badge ${badgeClass}">${user.rol}</span></td>
+                    <td>${fechaRegistro}</td>
+                    <td>${ultimoAcceso}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        // Cargar datos al inicio
+        loadData();
+    </script>
+</body>
+</html>
